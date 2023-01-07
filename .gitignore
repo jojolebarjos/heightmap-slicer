@@ -1,0 +1,10 @@
+/potrace*
+.ipynb_checkpoints/
+.vscode/
+.env
+*.bmp
+*.geojson
+*.json
+*.pyc
+*.svg
+*.tif
