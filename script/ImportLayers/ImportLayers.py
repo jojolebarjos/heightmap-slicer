@@ -5,12 +5,16 @@ def run(context):
     ui = None
     try:
 
-        # https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-7ac78bb6-10e5-4997-83b2-a315c1e33dc6
-        # https://help.autodesk.com/view/fusion360/ENU/?guid=GUID-CB1A2357-C8CD-474D-921E-992CA3621D04
-
         # Get core objects
         app = adsk.core.Application.get()
         ui = app.userInterface
+
+        # Ask user for SVG files
+        folderDialog = ui.createFolderDialog()
+        folderDialog.title = "Select SVG location"
+        if folderDialog.showDialog() != adsk.core.DialogResults.DialogOK:
+            return
+        folder = folderDialog.folder
 
         # Make new design document
         # doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
@@ -23,11 +27,11 @@ def run(context):
         rootComp = design.rootComponent
 
         # Infer how many layers are available from files
-        folder = "D:\\Projects\\printer\\heightmap\\tmp\\"
         names = {name for name in os.listdir(folder) if name.endswith(".svg")}
         numLayers = len(names)
+        assert numLayers > 0
         for iz in range(numLayers):
-            path = folder + f"{iz:04d}.svg"
+            path = os.path.join(folder, f"{iz:04d}.svg")
             assert os.path.exists(path)
 
         # Create progress dialog
@@ -35,7 +39,7 @@ def run(context):
         progressDialog.cancelButtonText = "Cancel"
         progressDialog.isBackgroundTranslucent = False
         progressDialog.isCancelButtonShown = True
-        progressDialog.show("Importing layers", "%v/%m (%p%%)", 0, numLayers, 1)
+        progressDialog.show("Importing layers", "%v/%m (%p)", 0, numLayers, 1)
 
         # Process each layer sequentially
         for iz in range(numLayers):
@@ -51,7 +55,8 @@ def run(context):
             sketch.name = f"Contour {iz:04d}"
 
             # Import SVG
-            path = folder + f"{iz:04d}.svg"
+            path = os.path.join(folder, f"{iz:04d}.svg")
+            # TODO fix this magic number
             scale = 4 * 50.0 * 0.1 / 52.917
             if not sketch.importSVG(path, 0.0, 0.0, scale):
                 raise ValueError("Failed to import SVG")
