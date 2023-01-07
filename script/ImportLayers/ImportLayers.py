@@ -17,11 +17,11 @@ def run(context):
         folder = folderDialog.folder
 
         # Make new design document
-        # doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
-        # design = app.activeProduct
+        doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+        design = app.activeProduct
 
         # Use current design
-        design = adsk.fusion.Design.cast(app.activeProduct)
+        #design = adsk.fusion.Design.cast(app.activeProduct)
 
         # Root component of active design
         rootComp = design.rootComponent
@@ -126,12 +126,15 @@ def run(context):
             extentDistance = adsk.fusion.DistanceExtentDefinition.create(thickness)
             extrudeInput.setOneSideExtent(extentDistance, adsk.fusion.ExtentDirections.PositiveExtentDirection)
             extrudeInput.startExtent = extentStart
-            extrude = extrudes.add(extrudeInput) 
-            #body = extrude.bodies.item(0) 
-            #body.name = f"Layer {iz:04d}"
+            extrudes.add(extrudeInput) 
 
             # Update progress bar
             progressDialog.progressValue += 1
+
+        # Pack everything as a timeline group
+        timeline = design.timeline
+        group = timeline.timelineGroups.add(0, timeline.count - 1)
+        group.name = "Layers"
 
         # Done
         progressDialog.hide()
